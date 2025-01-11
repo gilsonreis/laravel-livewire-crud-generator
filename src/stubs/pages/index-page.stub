@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Livewire\Pages\Cadastros\{{ ModelPlural }};
+
+use App\Models\{{ Model }};
+use App\UseCases\{{ Model }}\Delete{{ Model }}UseCase;
+use App\UseCases\{{ Model }}\GetAll{{ Model }}UseCase;
+use App\UseCases\{{ Model }}\Show{{ Model }}UseCase;
+use Gilsonreis\LaravelCrudGenerator\Support\Filter;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Livewire\Attributes\On;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+#[Title('Listagem de {{ ModelPluralReadable }}')]
+class IndexPage extends Component
+{
+    use WithPagination, LivewireAlert;
+
+    #[Url()]
+    public ?string $search = null;
+
+    public ${{ modelSingular }}Id;
+    public {{ Model }} $viewed{{ Model }};
+
+    public function goToEdit($id)
+    {
+        return redirect()->to(route('cadastros.{{ modelPlural }}.edit', $id));
+    }
+
+    #[On('delete{{ Model }}')]
+    public function delete{{ Model }}(${{ modelSingular }}Id)
+    {
+        $delete{{ Model }}UseCase = app(Delete{{ Model }}UseCase::class);
+        $deleted = $delete{{ Model }}UseCase->handle(${{ modelSingular }}Id);
+
+        if ($deleted) {
+            $this->alert(
+                'success',
+                'Sucesso!',
+                ['text' => '{{ ModelReadable }} deletado com sucesso.']
+            );
+        } else {
+            $this->alert(
+                'error',
+                'Oppsss!',
+                ['text' => 'Não foi possível deletar o {{ modelSingular }}.']
+            );
+        }
+    }
+
+    #[On('view{{ Model }}')]
+    public function view{{ Model }}(${{ modelSingular }}Id)
+    {
+        $show{{ Model }}UseCase = app(Show{{ Model }}UseCase::class);
+        $this->{{ modelSingular }}Id = ${{ modelSingular }}Id;
+        $this->viewed{{ Model }} = $show{{ Model }}UseCase->handle(${{ modelSingular }}Id);
+
+        $this->dispatch('showModal');
+        $this->dispatch('update-form', ${{ modelSingular }}Id);
+        $this->dispatch('load-{{ modelSingular }}', ${{ modelSingular }}Id);
+    }
+
+    public function render(GetAll{{ Model }}UseCase $getAll{{ Model }}UseCase)
+    {
+        $filters = [];
+        if (!is_null($this->search)) {
+            $filters = [
+                '_or' => [
+                    [
+                        '{{ stringField }}_like' => $this->search,
+                    ],
+                ],
+            ];
+        }
+
+        $filter = new Filter(filters: $filters);
+        ${{ modelPlural }} = $getAll{{ Model }}UseCase->handle($filter);
+        $this->resetPage();
+
+        return view('livewire.pages.cadastros.{{ modelPlural }}.index-page', [
+            '{{ modelPlural }}' => ${{ modelPlural }}
+        ]);
+    }
+}

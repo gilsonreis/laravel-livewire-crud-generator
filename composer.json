@@ -1,0 +1,33 @@
+{
+    "name": "gilsonreis/laravel-livewire-crud-generator",
+    "description": "Gerador de CRUD para Laravel com Livewire",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Gilsonreis\\LaravelLivewireCrudGenerator\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Gilson Reis",
+            "email": "gilsonc.reis@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Gilsonreis\\LaravelLivewireCrudGenerator\\Providers\\CrudLivewireGeneratorServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "laravel/framework": "^10.0|^11.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

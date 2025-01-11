@@ -1,0 +1,18 @@
+<?php
+
+namespace {{ namespace }};
+
+use Livewire\Attributes\Title;
+use Livewire\Component;
+
+#[Title('Título de {{ readableName }}')]
+class {{ className }} extends Component
+{
+    public function mount()
+    { }
+
+    public function render()
+    {
+        return view('{{ viewName }}');
+    }
+}
