@@ -67,15 +67,15 @@ interface {$repositoryName}Interface
 
 namespace App\Repositories\\" . Str::studly($modelName) . ";
 
-use Illuminate\\Pagination\\LengthAwarePaginator;
-use Gilsonreis\\LaravelLivewireCrudGenerator\\Support\\Pagination;
+use Illuminate\\Contracts\\Pagination\\LengthAwarePaginator;
 use Gilsonreis\\LaravelLivewireCrudGenerator\\Support\\Filter;
+use App\Models\\$modelName;
 
 interface {$repositoryName}Interface
 {
-    public function getAll(Filter \$filter): LengthAwarePaginator|array;
+    public function getAll(Filter \$filter): LengthAwarePaginator;
 
-    public function find(int \$id);
+    public function find(int \$id): ?$modelName;
 
     public function create(array \$data);
 
@@ -95,13 +95,12 @@ interface {$repositoryName}Interface
 namespace App\Repositories\\" . Str::studly($modelName) . ";
 
 use App\Models\\$modelName;
-use Illuminate\\Pagination\\LengthAwarePaginator;
-use Gilsonreis\\LaravelLivewireCrudGenerator\\Support\\Pagination;
+use Illuminate\\Contracts\\Pagination\\LengthAwarePaginator;
 use Gilsonreis\\LaravelLivewireCrudGenerator\\Support\\Filter;
 
 class {$repositoryName} implements {$repositoryName}Interface
 {
-    public function getAll(Filter \$filter): LengthAwarePaginator|array
+    public function getAll(Filter \$filter): LengthAwarePaginator
     {
         \$query = {$modelName}::query();
 
@@ -109,13 +108,10 @@ class {$repositoryName} implements {$repositoryName}Interface
 
         \$query->orderBy(\$filter->getOrderColumn(), \$filter->getOrderDirection());
 
-        if (\$pagination->hasPaginate()) {
-            return \$query->paginate(
-                columns: \$filter->getColumns()
-            )->toArray();
-        }
-
-        return \$query->get(\$filter->getColumns())->toArray();
+        return \$query->paginate(
+            perPage: 10,
+            columns: \$filter->getColumns()
+        );
     }
 
     public function find(int \$id): ?$modelName

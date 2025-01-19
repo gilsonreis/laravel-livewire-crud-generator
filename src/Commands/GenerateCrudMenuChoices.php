@@ -24,8 +24,6 @@ class GenerateCrudMenuChoices extends Command
                     'Gerar UseCase',
                     'Gerar Repository',
                     'Gerar Model',
-                    'Gerar Rotas',
-                    'Gerar Login',
                     'Sobre',
                     'Sair',
                 ]
@@ -50,12 +48,9 @@ class GenerateCrudMenuChoices extends Command
                 case 'Gerar Model':
                     $this->generateModel();
                     break;
-                case 'Gerar Rotas':
-                    $this->generateRoutes();
-                    break;
-                case 'Gerar Login':
-                    $this->generateLogin();
-                    break;
+//                case 'Gerar Login':
+//                    $this->generateLogin();
+//                    break;
                 case 'Sobre':
                     $this->displayAbout();
                     break;
@@ -186,29 +181,13 @@ class GenerateCrudMenuChoices extends Command
     private function generateFullLivewireCrud()
     {
         $model = $this->ask('Informe o nome do Model para o CRUD completo:');
-        $tableName = $this->ask('Informe o nome da tabela:');
-        $label = $this->ask('Informe o label (singular) do Model:');
-        $pluralLabel = $this->ask('Informe o label (plural) do Model:');
-        $addObserver = $this->confirm('Deseja adicionar um Observer para o Model?', false);
 
-        // Gerar Model
-        $this->info('Gerando Model...');
-        switch ($tableName) {
-            case 'users':
-                $this->warn("Classe User não pode ser modificada via CRUD.");
-                break;
-            default:
-                $this->makeCommandRun('make:crud-model', [
-                    '--table' => $tableName,
-                    '--label' => $label,
-                    '--plural-label' => $pluralLabel,
-                    '--observer' => $addObserver,
-                ]);
-                break;
+        $modelPath = app_path("Models/{$model}.php");
+
+        if (!file_exists($modelPath)) {
+            $this->warn("Model {$model} não encontrado em app/Models.");
+            return;
         }
-        // Gerar Repository
-        $this->info('Gerando Repository...');
-      
 
         $this->makeCommandRun('make:crud-repository',[
             'repositoryName' => "{$model}Repository",
@@ -221,11 +200,9 @@ class GenerateCrudMenuChoices extends Command
 
         $this->info('Gerando Rotas...');
 
-        $this->makeCommandRun('make:crud-routes', ['--model' => $model]);
-
         // Gerar Actions
-        $this->info('Gerando Actions...');
-        $this->makeCommandRun('make:crud-actions', ['--model' => $model]);
+        $this->info('Gerando Livewire Componentes...');
+        $this->makeCommandRun('make:crud-livewire', ['--model' => $model]);
         $this->info("CRUD completo para o model {$model} gerado com sucesso!");
     }
 

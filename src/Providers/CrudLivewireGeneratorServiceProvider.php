@@ -26,7 +26,6 @@ class CrudLivewireGeneratorServiceProvider extends ServiceProvider
             GenerateCrudActions::class,
             GenerateFormRequest::class,
             GenerateCrudMenuChoices::class,
-            GenerateCrudRoutes::class,
             GenerateCrudSanctumLogin::class,
             GenerateCrudRbac::class,
             GenerateCrudLivewire::class,

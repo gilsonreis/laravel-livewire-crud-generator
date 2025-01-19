@@ -90,18 +90,17 @@ class {$useCaseName}
 namespace App\UseCases\\{$directory};
 
 use Gilsonreis\LaravelLivewireCrudGenerator\Support\Filter;
-use Gilsonreis\LaravelLivewireCrudGenerator\Support\Pagination;
 use App\Repositories\\{$directory}\\{$repositoryInterface};
 
-class {$useCaseName}
+readonly class {$useCaseName}
 {
     public function __construct(
         private readonly {$repositoryInterface} \$repository
     ) {}
 
-    public function handle(Pagination \$pagination, Filter \$filter)
+    public function handle(Filter \$filter)
     {
-        return \$this->repository->getAll(\$pagination, \$filter);
+        return \$this->repository->getAll(\$filter);
     }
 }";
 

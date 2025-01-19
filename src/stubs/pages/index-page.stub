@@ -6,7 +6,7 @@ use App\Models\{{ Model }};
 use App\UseCases\{{ Model }}\Delete{{ Model }}UseCase;
 use App\UseCases\{{ Model }}\GetAll{{ Model }}UseCase;
 use App\UseCases\{{ Model }}\Show{{ Model }}UseCase;
-use Gilsonreis\LaravelCrudGenerator\Support\Filter;
+use Gilsonreis\LaravelLivewireCrudGenerator\Support\Filter;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
@@ -80,7 +80,7 @@ class IndexPage extends Component
         ${{ modelPlural }} = $getAll{{ Model }}UseCase->handle($filter);
         $this->resetPage();
 
-        return view('livewire.pages.cadastros.{{ modelPlural }}.index-page', [
+        return view('livewire.pages.cadastros.{{ modelPlural }}.index', [
             '{{ modelPlural }}' => ${{ modelPlural }}
         ]);
     }
