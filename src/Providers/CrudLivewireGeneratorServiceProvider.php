@@ -37,6 +37,6 @@ class CrudLivewireGeneratorServiceProvider extends ServiceProvider
     {
         $this->publishes([
             __DIR__ . '/../stubs' => base_path('stubs/livewire'),
-        ], 'livewire-stubs');
+        ], 'crud-livewire-stubs');
     }
 }

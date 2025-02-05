@@ -206,12 +206,28 @@ class GenerateCrudMenuChoices extends Command
         $this->info("CRUD completo para o model {$model} gerado com sucesso!");
     }
 
-    private function displayAbout()
+    protected function displayAbout(): void
     {
-        $this->info("\n============================ SOBRE O GERADOR ============================");
-        $this->info('Este é um gerador de CRUDs para Laravel, criado para automatizar a geração de ');
-        $this->info('actions, use cases, repositories e models, e facilitar a criação de APIs RESTful.');
-        $this->info("==========================================================================\n");
+        $this->info("\n========================== SOBRE O GERADOR LIVEWIRE ==========================");
+        $this->info('Este gerador automatiza a criação de CRUDs completos em Laravel utilizando Livewire.');
+        $this->info('Ele gera os seguintes componentes automaticamente:');
+        $this->info('');
+        $this->info("✅  Actions (caso necessário)");
+        $this->info('✅  UseCases');
+        $this->info('✅  Repositories');
+        $this->info('✅  Models');
+        $this->info('✅  Componentes Livewire (IndexPage, CreatePage, EditPage e FormPartial)');
+        $this->info('✅  Views associadas (Listagem, Formulário, Modais, etc.)');
+        $this->info('✅  Rotas organizadas dinamicamente em arquivos separados');
+        $this->info('');
+        $this->info('🎨 Personalização via Stubs:');
+        $this->info('   - Todos os arquivos gerados usam *stubs personalizáveis.');
+        $this->info('   - Para substituir um stub, publique os arquivos padrão com:');
+        $this->info('       php artisan vendor:publish --tag=livewire-stubs');
+        $this->info('   - Após a publicação, edite os arquivos em stubs/livewire/ conforme necessário mantendo, as variáveis de substituição.');
+        $this->info('');
+        $this->info('🛠️ Basta informar o nome do Model e o gerador criará toda a estrutura necessária!');
+        $this->info("================================================================================\n");
     }
 
     private function clearScreen()
@@ -224,7 +240,7 @@ class GenerateCrudMenuChoices extends Command
     }
     private function waitForKeyPress()
     {
-        $this->info("\nPressione qualquer tecla para continuar...");
+        $this->info("\nPressione enter tecla para continuar...");
         readline();
     }
 

@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Livewire\Forms\{{ ModelPlural }};
+
+use Livewire\Form;
+use Livewire\Attributes\Validate;
+
+class {{ Model }}Form extends Form
+{
+    {{ properties }}
+}

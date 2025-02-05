@@ -1,7 +1,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12 d-flex justify-content-end">
-            <a href="" class="btn btn-primary">
+            <a href="{{ route('cadastros.{{ modelPlural }}.create') }}" class="btn btn-primary">
                 <i class="ti ti-plus"></i> Create new {{ ModelReadable }}
             </a>
         </div>
@@ -9,8 +9,14 @@
     <div class="row mt-5">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex align-items-center justify-content-between card-header-form">
                     <h4 class="card-title">Listing {{ ModelPluralReadable }}</h4>
+                    <form action="" method="post">
+                        <label>
+                            <input name="search" type="text" placeholder="Digite a busca"
+                                   class="form-control form-control-sm" wire:model.live="search">
+                        </label>
+                    </form>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -23,12 +29,21 @@
                             </thead>
                             <tbody>
                                 @foreach(${{ modelPlural }} as ${{ modelSingular }})
-                                <tr title="Clique para editar {{ ${{ modelSingular }}->{{ firstTextField }} }}" wire:click="goToEdit({{ ${{ modelSingular }}->id }})" style="cursor: pointer;">
+                                <tr
+                                @hasPermission('{{ modelSingular }}/edit')
+                                title="Clique para editar {{ ${{ modelSingular }}->{{ firstTextField }} }}" wire:click="goToEdit({{ ${{ modelSingular }}->id }})" style="cursor: pointer;"
+                                @endHasPermission
+                                >
+
 {{ rows }}
                                     <td>
                                         <div class="d-flex align-items-center justify-content-around gap-2">
+                                            @hasPermission('{{ modelSingular }}/show')
                                             <a href="#" onclick="event.stopPropagation(); Livewire.dispatch('view{{ upModelSingular }}', { {{ modelSingular }}Id: {{ ${{ modelSingular }}->id }} })" class="btn btn-info btn-sm"><i class="ti ti-eye"></i></a>
+                                            @endHasPermission
+                                            @hasPermission('{{ modelSingular }}/delete')
                                             <a href="#" onclick="event.stopPropagation(); confirmDelete({{ ${{ modelSingular }}->id }})" class="btn btn-danger btn-sm"><i class="ti ti-trash"></i></a>
+                                            @endHasPermission
                                         </div>
                                     </td>
                                 </tr>
@@ -43,6 +58,7 @@
             </div>
         </div>
     </div>
+    @hasPermission('{{ modelSingular }}/show')
     <div class="modal fade" id="view{{ upModelSingular }}Modal" tabindex="-1" aria-labelledby="view{{ upModelSingular }}ModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -53,7 +69,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    {{-- <livewire:pages.cadastros.{{ modelPlural }}.form-partial :{{ modelSingular }}-id="$viewed{{ upModelSingular }}->id ?? null" read-only="true" />--}}
+                    <livewire:pages.cadastros.{{ modelPlural }}.form-partial :{{ modelSingular }}-id="$viewed{{ upModelSingular }}->id ?? null" read-only="true" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
@@ -61,17 +77,21 @@
             </div>
         </div>
     </div>
+    @endHasPermission
 </div>
 
 
 
 @section('scripts')
     <script>
+    @hasPermission('{{ modelSingular }}/show')
         document.addEventListener('showModal', function() {
             const modal = new bootstrap.Modal(document.getElementById('view{{ upModelSingular }}Modal'));
             modal.show();
         });
+    @endHasPermission
 
+    @hasPermission('{{ modelSingular }}/delete')
         function confirmDelete({{ modelSingular }}Id) {
             Swal.fire({
                 title: 'Tem certeza?',
@@ -88,5 +108,6 @@
                 }
             });
         }
+    @endHasPermission
     </script>
 @endsection

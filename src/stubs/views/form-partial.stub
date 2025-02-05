@@ -1,0 +1,16 @@
+<form class="mb-4" wire:submit.prevent="submitForm">
+    <input type="hidden" name="{{ modelSingular }}Id" wire:model.live="{{ modelSingular }}Id">
+    <div class="row">
+        {{ formFields }}
+    </div>
+    @if (!$readOnly)
+    <div class="d-flex justify-content-between mt-4">
+        <a href="{{ route('{{ routePrefix }}.index') }}" class="btn btn-default">
+            <i class="ti ti-arrow-left"></i> Voltar
+        </a>
+        <button type="submit" class="btn btn-primary">
+            <i class="ti ti-device-floppy"></i> Salvar
+        </button>
+    </div>
+    @endif
+</form>
