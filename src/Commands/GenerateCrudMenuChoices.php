@@ -33,9 +33,6 @@ class GenerateCrudMenuChoices extends Command
                 case 'Gerar CRUD completo':
                     $this->generateFullLivewireCrud();
                     break;
-                case 'Gerar Livewire Form Validation':
-                    $this->generateLivewireFormValidation();
-                    break;
                 case 'Gerar Livewire Componente':
                     $this->generateLivewireComponent();
                     break;
@@ -247,10 +244,6 @@ class GenerateCrudMenuChoices extends Command
     private function generateLogin()
     {
         Artisan::call('make:crud-auth');
-    }
-
-    private function generateLivewireFormValidation()
-    {
     }
 
 }

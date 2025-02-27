@@ -98,9 +98,9 @@ readonly class {$useCaseName}
         private readonly {$repositoryInterface} \$repository
     ) {}
 
-    public function handle(Filter \$filter)
+    public function handle(Filter \$filter, bool \$hasPagination = true)
     {
-        return \$this->repository->getAll(\$filter);
+        return \$this->repository->getAll(\$filter, \$hasPagination);
     }
 }";
 

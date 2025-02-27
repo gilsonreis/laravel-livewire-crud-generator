@@ -73,7 +73,7 @@ use App\Models\\$modelName;
 
 interface {$repositoryName}Interface
 {
-    public function getAll(Filter \$filter): LengthAwarePaginator;
+    public function getAll(Filter \$filter, bool \$hasPagination): LengthAwarePaginator|array;
 
     public function find(int \$id): ?$modelName;
 
@@ -100,7 +100,7 @@ use Gilsonreis\\LaravelLivewireCrudGenerator\\Support\\Filter;
 
 class {$repositoryName} implements {$repositoryName}Interface
 {
-    public function getAll(Filter \$filter): LengthAwarePaginator
+    public function getAll(Filter \$filter, bool \$hasPagination): LengthAwarePaginator|array
     {
         \$query = {$modelName}::query();
 
@@ -108,10 +108,12 @@ class {$repositoryName} implements {$repositoryName}Interface
 
         \$query->orderBy(\$filter->getOrderColumn(), \$filter->getOrderDirection());
 
-        return \$query->paginate(
-            perPage: 10,
-            columns: \$filter->getColumns()
-        );
+        return \$hasPagination :
+            \$query->paginate(
+                perPage: 10,
+                columns: \$filter->getColumns()
+            ) : 
+            \$query->get(\$filter->getColumns())->toArray();
     }
 
     public function find(int \$id): ?$modelName

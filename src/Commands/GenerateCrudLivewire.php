@@ -368,7 +368,6 @@ Route::prefix('$modelPluralKebab')
             })
             ->join("\n");
 
-        // TODO: Ajustar para retirar Category::all() e substituir por GetAllCategoryUseCase::class
         $content = str_replace(
             ['{{ formFields }}', '{{ modelSingular }}', '{{ routePrefix }}'],
             [$allFields, Str::camel($model), 'cadastros.' . Str::kebab(Str::pluralStudly($model))],
@@ -415,13 +414,27 @@ Route::prefix('$modelPluralKebab')
             $rules = [];
 
             if (!$isSQLite) {
-                $tableColumns = $connection->getDoctrineSchemaManager()->listTableColumns($table);
-                $isRequired = $tableColumns[$field]->getNotnull();
-                $maxLength = $tableColumns[$field]->getLength();
+                // Obter informações da estrutura da tabela com SHOW COLUMNS
+                $columnsInfo = DB::select("SHOW COLUMNS FROM $table");
+
+                $isRequired = false;
+                $maxLength = null;
+
+                foreach ($columnsInfo as $column) {
+                    if ($column->Field === $field) {
+                        $isRequired = $column->Null === 'NO';
+
+                        if (preg_match('/\((\d+)\)/', $column->Type, $matches)) {
+                            $maxLength = (int) $matches[1];
+                        }
+                        break;
+                    }
+                }
             } else {
                 $isRequired = false;
                 $maxLength = null;
                 $notNull = DB::select("PRAGMA table_info($table)");
+
                 foreach ($notNull as $column) {
                     if ($column->name === $field && $column->notnull) {
                         $isRequired = true;
@@ -450,10 +463,12 @@ Route::prefix('$modelPluralKebab')
 
             // Verificação de UNIQUE
             if (!$isSQLite) {
-                $tableIndexes = $connection->getDoctrineSchemaManager()->listTableIndexes($table);
-                foreach ($tableIndexes as $index) {
-                    if ($index->isUnique() && in_array($field, $index->getColumns())) {
+                $indexes = DB::select("SHOW INDEX FROM $table");
+
+                foreach ($indexes as $index) {
+                    if ($index->Non_unique == 0 && $index->Column_name === $field) {
                         $rules[] = "unique:$table,$field";
+                        break;
                     }
                 }
             }
@@ -835,15 +850,21 @@ PHP;
         $relationModel = Str::camel(class_basename($relation));
         $disabledAttr = "{{ \$readOnly ? 'disabled' : '' }}";
 
+        $wireModel = "{$relation}_id";
+        $errorClass = "@error('$wireModel') group-error @enderror";
+
+        $errorMessage = "@error('$wireModel') <span class=\"text-danger\">{{ \$message }}</span> @enderror";
+
         return <<<HTML
-        <div class="form-group col-md-6">
-            <label for="$relation" class="form-label">{$relationModel}</label>
-            <select class="form-select" id="{$relation}_id" wire:model.lazy="form.{$relation}_id" $disabledAttr>
+        <div class="form-group col-md-6 {$errorClass}">
+            <label for="{$wireModel}" class="form-label">{$relationModel}</label>
+            <select class="form-select" id="{$wireModel}" wire:model="{$wireModel}" $disabledAttr>
                 <option value="">Selecione</option>
                 @foreach(\$$relationModel as \$item)
-                    <option value="{{ \$item->id }}">{{ \$item->$relationLabelField }}</option>
+                    <option value="{{ \$item['id'] }}">{{ \$item['$relationLabelField'] }}</option>
                 @endforeach
             </select>
+            {$errorMessage}
         </div>
     HTML;
     }
