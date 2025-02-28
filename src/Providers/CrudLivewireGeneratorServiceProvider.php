@@ -2,12 +2,10 @@
 
 namespace Gilsonreis\LaravelLivewireCrudGenerator\Providers;
 
-use Gilsonreis\LaravelLivewireCrudGenerator\Commands\GenerateCrudActions;
 use Gilsonreis\LaravelLivewireCrudGenerator\Commands\GenerateCrudMenuChoices;
 use Gilsonreis\LaravelLivewireCrudGenerator\Commands\GenerateCrudModel;
 use Gilsonreis\LaravelLivewireCrudGenerator\Commands\GenerateCrudRbac;
 use Gilsonreis\LaravelLivewireCrudGenerator\Commands\GenerateCrudRepository;
-use Gilsonreis\LaravelLivewireCrudGenerator\Commands\GenerateCrudRoutes;
 use Gilsonreis\LaravelLivewireCrudGenerator\Commands\GenerateCrudSanctumLogin;
 use Gilsonreis\LaravelLivewireCrudGenerator\Commands\GenerateCrudUseCase;
 use Gilsonreis\LaravelLivewireCrudGenerator\Commands\GenerateFormRequest;
@@ -23,7 +21,6 @@ class CrudLivewireGeneratorServiceProvider extends ServiceProvider
             GenerateCrudModel::class,
             GenerateCrudRepository::class,
             GenerateCrudUseCase::class,
-            GenerateCrudActions::class,
             GenerateFormRequest::class,
             GenerateCrudMenuChoices::class,
             GenerateCrudSanctumLogin::class,
