@@ -108,7 +108,7 @@ class {$repositoryName} implements {$repositoryName}Interface
 
         \$query->orderBy(\$filter->getOrderColumn(), \$filter->getOrderDirection());
 
-        return \$hasPagination :
+        return \$hasPagination ?
             \$query->paginate(
                 perPage: 10,
                 columns: \$filter->getColumns()

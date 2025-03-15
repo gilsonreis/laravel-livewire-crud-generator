@@ -42,6 +42,8 @@ class GenerateCrudLivewire extends Command
 
         $this->addRoutes($model);
 
+        $this->insertCrudPermissions($model);
+
         $this->info("CRUD para o Model $model gerado com sucesso!");
     }
 
@@ -129,7 +131,7 @@ class GenerateCrudLivewire extends Command
                 $relationClass = end($rel);
                 $relationField = $this->getFirstStringField(Str::studly($relation));
                 return $relationField
-                    ? '                                    <td>{{ $'. Str::camel($model) .'->' . Str::camel($relationClass) . '->' . $relationField . ' ?? \'-\' }}</td>'
+                    ? '                                    <td>{{ $' . Str::camel($model) . '->' . Str::camel($relationClass) . '->' . $relationField . ' ?? \'-\' }}</td>'
                     : '                                    <td>-</td>';
             }))
             ->join("\n");
@@ -277,15 +279,18 @@ Route::prefix('$modelPluralKebab')
         }
 
         $relations = $this->getRelations($modelClass);
-        $mountProperties = collect($relations)->map(function($relation) {
+
+        unset($relations['notifications'], $relations['readNotifications'], $relations['unreadNotifications']);
+
+        $mountProperties = collect($relations)->map(function ($relation) {
             $model = Str::studly(class_basename($relation));
             $cModel = Str::camel($model);
             return "public array \$$cModel = [];";
-        } )->join("\n        ");
-        $mountAssignments = collect($relations)->map(function($relation) {
+        })->join("\n        ");
+        $mountAssignments = collect($relations)->map(function ($relation) {
             $model = Str::studly(class_basename($relation));
             $cModel = Str::camel($model);
-            return  "\$this->$cModel = app(GetAll" . $model . 'UseCase::class)->handle();';
+            return "\$this->$cModel = app(GetAll" . $model . 'UseCase::class)->handle();';
         }
         )->join("\n        ");
 
@@ -311,7 +316,7 @@ Route::prefix('$modelPluralKebab')
                 Str::headline(Str::camel($model)),
                 $mountProperties,
                 $mountAssignments,
-                collect($relations)->map(function($relation) {
+                collect($relations)->map(function ($relation) {
                     $model = Str::studly(class_basename($relation));
                     return "use App\\UseCases\\" . $model . "\\GetAll" . $model . 'UseCase;';
                 }
@@ -425,7 +430,7 @@ Route::prefix('$modelPluralKebab')
                         $isRequired = $column->Null === 'NO';
 
                         if (preg_match('/\((\d+)\)/', $column->Type, $matches)) {
-                            $maxLength = (int) $matches[1];
+                            $maxLength = (int)$matches[1];
                         }
                         break;
                     }
@@ -496,7 +501,7 @@ Route::prefix('$modelPluralKebab')
         );
 
         file_put_contents($filePath, $content);
-        $this->info("Form de validação gerado com sucesso.");
+        $this->info('Form de validação gerado com sucesso.');
     }
 
     protected function generateEditPage(string $model): void
@@ -582,10 +587,6 @@ Route::prefix('$modelPluralKebab')
             default => 'string',
         };
     }
-
-
-
-
 
 
     private function ensureRoutesLoader(): void
@@ -729,19 +730,25 @@ PHP;
 
     private function getFirstStringField(string $modelClass): string
     {
+        dump('ANTES -> ', $modelClass);
         $modelClass = str_starts_with($modelClass, 'App') ? $modelClass : 'App\\Models\\' . $modelClass;
 
-        $tableName = (new $modelClass())->getTable();
-        $columns = Schema::getColumnListing($tableName);
+        dump('DEPOiS -> ', $modelClass);
 
-        foreach ($columns as $column) {
-            $type = Schema::getColumnType($tableName, $column);
-            if (in_array($type, ['string', 'varchar', 'text', 'char'])) {
-                return $column;
+        if (!$this->ignoreUndesiredModels($modelClass)) {
+
+            $tableName = (new $modelClass())->getTable();
+            $columns = Schema::getColumnListing($tableName);
+
+            foreach ($columns as $column) {
+                $type = Schema::getColumnType($tableName, $column);
+                if (in_array($type, ['string', 'varchar', 'text', 'char'])) {
+                    return $column;
+                }
             }
         }
 
-        return $columns[0];
+        return $columns[0] ?? '';
     }
 
     private function getRelations(string $modelClass): array
@@ -759,16 +766,18 @@ PHP;
                 continue;
             }
 
-            // Testar se o método retorna uma relação do Eloquent
-            try {
-                $returnValue = $reflection->invoke($modelInstance);
+            if (!$this->ignoreUndesiredModels($modelClass)) {
+                // Testar se o método retorna uma relação do Eloquent
+                try {
+                    $returnValue = $reflection->invoke($modelInstance);
 
-                if ($returnValue instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
-                    $relations[$method] = get_class($returnValue->getRelated());
+                    if ($returnValue instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
+                        $relations[$method] = get_class($returnValue->getRelated());
+                    }
+                } catch (\Throwable $e) {
+                    // Ignorar erros ao invocar métodos que não são relações
+                    continue;
                 }
-            } catch (\Throwable $e) {
-                // Ignorar erros ao invocar métodos que não são relações
-                continue;
             }
         }
 
@@ -873,5 +882,68 @@ PHP;
     {
         $excludedFields = ['id', 'created_at', 'updated_at', 'deleted_at'];
         return array_filter($fields, fn($field) => !in_array($field, $excludedFields));
+    }
+
+    private function ignoreUndesiredModels(string $modelClass): bool
+    {
+        $modelClass = str_starts_with($modelClass, 'App') ? $modelClass : 'App\\Models\\' . $modelClass;
+        return str_contains($modelClass, 'Illuminate\\') || str_contains($modelClass, 'DatabaseNotification\\');
+    }
+
+    protected function insertCrudPermissions(string $model): void
+    {
+        // Verifica se as tabelas necessárias existem
+        if (!Schema::hasTable('permissions') || !Schema::hasTable('permission_role')) {
+            return;
+        }
+
+        // Pergunta ao usuário se deseja inserir as permissões
+        if (!$this->confirm("Deseja inserir permissões para o CRUD do model {$model}?")) {
+            return;
+        }
+
+        // Obtém o primeiro usuário para associar as permissões
+        $firstUser = DB::table('users')->first();
+        if (!$firstUser || !isset($firstUser->role_id)) {
+            $this->warn("Nenhum usuário encontrado ou sem 'role_id'. Permissões não foram associadas.");
+            return;
+        }
+
+        $roleId = $firstUser->role_id;
+
+        // Converte o nome do model para kebab-case
+        $modelKebab = Str::kebab($model);
+
+        // Define as permissões padrão do CRUD
+        $permissions = [
+            "{$modelKebab}/index",
+            "{$modelKebab}/create",
+            "{$modelKebab}/edit",
+            "{$modelKebab}/delete",
+        ];
+
+        foreach ($permissions as $permissionName) {
+            // Verifica se a permissão já existe
+            $permission = DB::table('permissions')->where('name', $permissionName)->first();
+
+            if (!$permission) {
+                // Insere a permissão na tabela
+                $permissionId = DB::table('permissions')->insertGetId([
+                    'name' => $permissionName,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                // Associa a permissão ao role_id do usuário
+                DB::table('permission_role')->insert([
+                    'role_id' => $roleId,
+                    'permission_id' => $permissionId,
+                ]);
+
+                $this->info("Permissão '{$permissionName}' inserida.");
+            }
+        }
+
+        $this->info("Todas as permissões foram processadas para o CRUD do model {$model}.");
     }
 }
