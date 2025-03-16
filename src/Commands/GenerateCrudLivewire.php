@@ -730,10 +730,7 @@ PHP;
 
     private function getFirstStringField(string $modelClass): string
     {
-        dump('ANTES -> ', $modelClass);
         $modelClass = str_starts_with($modelClass, 'App') ? $modelClass : 'App\\Models\\' . $modelClass;
-
-        dump('DEPOiS -> ', $modelClass);
 
         if (!$this->ignoreUndesiredModels($modelClass)) {
 
