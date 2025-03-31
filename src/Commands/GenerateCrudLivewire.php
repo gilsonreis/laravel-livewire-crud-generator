@@ -290,7 +290,9 @@ Route::prefix('$modelPluralKebab')
         $mountAssignments = collect($relations)->map(function ($relation) {
             $model = Str::studly(class_basename($relation));
             $cModel = Str::camel($model);
-            return "\$this->$cModel = app(GetAll" . $model . 'UseCase::class)->handle();';
+            $return = "\$filter = new Filter();\n";
+            $return .= "\$this->$cModel = app(GetAll" . $model . 'UseCase::class)->handle(filter: $filter, hasPagination: false);';
+            return $return;
         }
         )->join("\n        ");
 
@@ -482,7 +484,9 @@ Route::prefix('$modelPluralKebab')
             $validateRule = !empty($rules) ? "#[Validate('" . implode('|', $rules) . "')]\n    " : '';
 
             // Gerar os campos do formulário
-            $fields[] = sprintf("%spublic %s \$%s;", $validateRule, $this->getFieldType($type), $field);
+            $nullablePrefix = $isRequired ? '' : '?';
+            $typeHint = $nullablePrefix . $this->getFieldType($type);
+            $fields[] = sprintf("%spublic %s \$%s;", $validateRule, $typeHint, $field);
         }
 
         $namespacePath = app_path('Livewire/Forms/' . Str::pluralStudly($model));
@@ -730,7 +734,10 @@ PHP;
 
     private function getFirstStringField(string $modelClass): string
     {
+        dump('ANTES -> ', $modelClass);
         $modelClass = str_starts_with($modelClass, 'App') ? $modelClass : 'App\\Models\\' . $modelClass;
+
+        dump('DEPOiS -> ', $modelClass);
 
         if (!$this->ignoreUndesiredModels($modelClass)) {
 

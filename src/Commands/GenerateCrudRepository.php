@@ -112,7 +112,7 @@ class {$repositoryName} implements {$repositoryName}Interface
             \$query->paginate(
                 perPage: 10,
                 columns: \$filter->getColumns()
-            ) : 
+            ) :
             \$query->get(\$filter->getColumns())->toArray();
     }
 

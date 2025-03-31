@@ -2,13 +2,14 @@
 
 namespace App\Livewire\Pages\Cadastros\{{ ModelPlural }};
 
+use Livewire\Component;
+use Livewire\Attributes\On;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
 use App\Livewire\Forms\{{ ModelPlural }}\{{ Model }}Form;
 use App\UseCases\{{ Model }}\Create{{ Model }}UseCase;
 use App\UseCases\{{ Model }}\Show{{ Model }}UseCase;
 use App\UseCases\{{ Model }}\Update{{ Model }}UseCase;
-use Jantinnerezo\LivewireAlert\LivewireAlert;
-use Livewire\Component;
-use Livewire\Attributes\On;
+use Gilsonreis\LaravelLivewireCrudGenerator\Support\Filter;
 {{ useGetAllUseCase }}
 
 class FormPartial extends Component
