@@ -921,6 +921,7 @@ PHP;
             "{$modelKebab}/create",
             "{$modelKebab}/edit",
             "{$modelKebab}/delete",
+            "{$modelKebab}/show",
         ];
 
         foreach ($permissions as $permissionName) {
