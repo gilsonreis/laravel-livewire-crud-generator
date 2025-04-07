@@ -49,7 +49,7 @@ class FormPartial extends Component
                 'success',
                 'Sucesso!',
                 ['text' => '{{ ModelReadable }} editado com sucesso.'],
-                route('cadastros.{{ modelPlural }}.index')
+                route('cadastros.{{ modelPluralKebab }}.index')
             );
         }
 
@@ -58,7 +58,7 @@ class FormPartial extends Component
             'success',
             'Sucesso!',
             ['text' => '{{ ModelReadable }} cadastrado com sucesso.'],
-            route('cadastros.{{ modelPlural }}.index')
+            route('cadastros.{{ modelPluralKebab }}.index')
         );
     }
 
@@ -71,7 +71,7 @@ class FormPartial extends Component
 
     public function render()
     {
-        return view('livewire.pages.cadastros.{{ modelPlural }}.form-partial');
+        return view('livewire.pages.cadastros.{{ modelPluralKebab }}.form-partial');
     }
 
     #[On('load-{{ modelSingular }}')]

@@ -14,11 +14,21 @@ class GenerateCrudLivewire extends Command
                             {--model= : Nome do Model para gerar o CRUD completo}';
     protected $description = 'Gera componentes Livewire com base no Model ou um componente em branco.';
 
+    protected string $modelReadable;
+    protected string $modelPluralReadable;
+
     public function handle()
     {
         $model = $this->option('model');
 
         if ($model) {
+
+            $modelReadable = $this->ask("Digite o nome legível no singular para o model {$model}", Str::headline($model));
+            $modelPluralReadable = $this->ask("Digite o nome legível no plural para o model {$model}", Str::headline(Str::pluralStudly($model)));
+
+            $this->modelReadable = $modelReadable;
+            $this->modelPluralReadable = $modelPluralReadable;
+
             $this->info("Gerando CRUD completo para o Model: $model");
             $this->generateCrudFromModel($model);
         }
@@ -65,11 +75,12 @@ class GenerateCrudLivewire extends Command
         $placeholders = [
             '{{ Model }}' => $model,
             '{{ ModelPlural }}' => Str::plural($model),
-            '{{ modelSingular }}' => Str::camel($model), // Conversão para camelCase
+            '{{ modelSingular }}' => Str::camel($model),
             '{{ modelPlural }}' => Str::camel(Str::plural($model)),
-            '{{ ModelReadable }}' => Str::title(str_replace('_', ' ', $model)),
-            '{{ ModelPluralReadable }}' => Str::plural(Str::title(str_replace('_', ' ', $model))),
+            '{{ ModelReadable }}' => $this->modelReadable,
+            '{{ ModelPluralReadable }}' => $this->modelPluralReadable,
             '{{ stringField }}' => $stringField,
+            '{{ modelPluralKebab }}' => Str::kebab(Str::pluralStudly($model)),
         ];
 
         $stubPath = __DIR__ . '/../stubs/pages/index-page.stub';
@@ -146,17 +157,19 @@ class GenerateCrudLivewire extends Command
                 '{{ ModelReadable }}',
                 '{{ ModelPluralReadable }}',
                 '{{ headers }}',
-                '{{ rows }}'
+                '{{ rows }}',
+                '{{ modelPluralKebab }}'
             ],
             [
                 Str::camel(Str::pluralStudly($model)),  // modelPlural
                 Str::camel($model),                    // modelSingular
                 Str::studly($model),                   // upModelSingular
                 $firstTextField,                       // firstTextField
-                Str::headline($model),                 // ModelReadable
-                Str::headline(Str::pluralStudly($model)), // ModelPluralReadable
+                $this->modelReadable,                 // ModelReadable
+                $this->modelPluralReadable, // ModelPluralReadable
                 $headers,                              // headers
-                $rows                                  // rows
+                $rows,                                  // rows
+                Str::kebab(Str::pluralStudly($model))  // modelPluralKebab
             ],
             $stub
         );
@@ -170,7 +183,7 @@ class GenerateCrudLivewire extends Command
         $modelName = Str::studly($model);
         $modelPluralName = Str::pluralStudly($model);
         $modelKebab = Str::kebab($model);
-        $modelPluralKebab = Str::plural($modelKebab);
+        $modelPluralKebab = Str::kebab(Str::pluralStudly($model));
 
         $routeFilePath = app_path("Routes/{$modelName}Routes.php");
 
@@ -190,15 +203,15 @@ Route::prefix('$modelPluralKebab')
     ->group(function () {
         Route::get('/', {$modelPluralName}\\IndexPage::class)
             ->name('index')
-            ->middleware(CheckPermission::class . ':{$modelKebab}/index');
+            ->middleware(CheckPermission::class . ':{$modelPluralKebab}/index');
 
         Route::get('/create', {$modelPluralName}\\CreatePage::class)
             ->name('create')
-            ->middleware(CheckPermission::class . ':{$modelKebab}/create');
+            ->middleware(CheckPermission::class . ':{$modelPluralKebab}/create');
 
         Route::get('/{id}/edit', {$modelPluralName}\\EditPage::class)
             ->name('edit')
-            ->middleware(CheckPermission::class . ':{$modelKebab}/edit');
+            ->middleware(CheckPermission::class . ':{$modelPluralKebab}/edit');
     });
 ";
         // Verificar se o arquivo já existe
@@ -223,7 +236,7 @@ Route::prefix('$modelPluralKebab')
         $modelPluralStudly = Str::pluralStudly($model);
         $modelPlural = Str::camel(Str::pluralStudly($model));
         $className = 'CreatePage';
-        $readableName = Str::headline($model);
+        $readableName = $this->modelReadable;
 
         $namespacePath = app_path("Livewire/Pages/Cadastros/{$modelPluralStudly}");
         $filePath = "$namespacePath/$className.php";
@@ -231,8 +244,8 @@ Route::prefix('$modelPluralKebab')
         File::ensureDirectoryExists($namespacePath);
 
         $content = str_replace(
-            ['{{ ModelPlural }}', '{{ modelPlural }}', '{{ readableName }}', '{{ className }}'],
-            [$modelPluralStudly, $modelPlural, $readableName, $className],
+            ['{{ ModelPlural }}', '{{ modelPlural }}', '{{ readableName }}', '{{ className }}', '{{ modelPluralKebab }}'],
+            [$modelPluralStudly, $modelPlural, $this->modelReadable, $className, Str::kebab($modelPluralStudly)],
             $stub
         );
 
@@ -248,7 +261,7 @@ Route::prefix('$modelPluralKebab')
 
         $modelPlural = Str::pluralStudly($model);
         $modelPluralKebab = Str::kebab($modelPlural);
-        $modelReadable = Str::headline($model);
+        $modelReadable = $this->modelReadable;
 
         $namespacePath = resource_path("views/livewire/pages/cadastros/$modelPluralKebab");
         $viewPath = "$namespacePath/create-page.blade.php";
@@ -256,8 +269,8 @@ Route::prefix('$modelPluralKebab')
         File::ensureDirectoryExists($namespacePath);
 
         $content = str_replace(
-            ['{{ readableName }}', '{{ modelPlural }}'],
-            [$modelReadable, $modelPluralKebab],
+            ['{{ readableName }}', '{{ readablePluralName }}', '{{ modelPlural }}', '{{ modelPluralKebab }}'],
+            [$this->modelReadable, $this->modelPluralReadable, $modelPlural, $modelPluralKebab],
             $stub
         );
 
@@ -304,25 +317,25 @@ Route::prefix('$modelPluralKebab')
                 '{{ modelSingular }}',
                 '{{ modelPlural }}',
                 '{{ ModelReadable }}',
-                '{{ modelSingularReadable }}',
                 '{{ mountProperties }}',
                 '{{ mountAssignments }}',
-                '{{ useGetAllUseCase }}'
+                '{{ useGetAllUseCase }}',
+                '{{ modelPluralKebab }}',
             ],
             [
                 Str::studly($model),
                 Str::pluralStudly($model),
                 Str::camel($model),
                 Str::camel(Str::pluralStudly($model)),
-                Str::headline($model),
-                Str::headline(Str::camel($model)),
+                $this->modelReadable,
                 $mountProperties,
                 $mountAssignments,
                 collect($relations)->map(function ($relation) {
                     $model = Str::studly(class_basename($relation));
                     return "use App\\UseCases\\" . $model . "\\GetAll" . $model . 'UseCase;';
                 }
-                )->join("\n")
+                )->join("\n"),
+                Str::kebab(Str::pluralStudly($model))
             ],
             $stub
         );
@@ -523,14 +536,23 @@ Route::prefix('$modelPluralKebab')
 
         $firstTextField = $this->getFirstStringField($modelClass);
         $content = str_replace(
-            ['{{ Model }}', '{{ modelSingular }}', '{{ modelPlural }}', '{{ ModelPlural }}', '{{ readableName }}', '{{ firstTextField }}'],
+            [
+                '{{ Model }}',
+                '{{ modelSingular }}',
+                '{{ modelPlural }}',
+                '{{ ModelPlural }}',
+                '{{ readableName }}',
+                '{{ firstTextField }}',
+                '{{ modelPluralKebab }}'
+            ],
             [
                 Str::studly($model),
                 Str::camel($model),
                 Str::camel(Str::pluralStudly($model)),
                 Str::pluralStudly($model),
-                Str::headline($model),
-                $firstTextField
+                $this->modelReadable,
+                $firstTextField,
+                Str::kebab(Str::pluralStudly($model))
             ],
             $stub
         );
@@ -559,19 +581,30 @@ Route::prefix('$modelPluralKebab')
             return;
         }
 
+        $modelPluralKebab = Str::kebab(Str::pluralStudly($model));
+
         $firstTextField = $this->getFirstStringField($modelClass);
         $content = str_replace(
-            ['{{ modelSingular }}', '{{ modelPlural }}', '{{ readableName }}', '{{ firstTextField }}'],
+            [
+                '{{ modelSingular }}',
+                '{{ modelPlural }}',
+                '{{ readableName }}',
+                '{{ readablePluralName }}',
+                '{{ firstTextField }}',
+                '{{ modelPluralKebab }}',
+            ],
             [
                 Str::camel($model),
                 Str::camel(Str::pluralStudly($model)),
-                Str::headline($model),
-                $firstTextField
+                $this->modelReadable,
+                $this->modelPluralReadable,
+                $firstTextField,
+                $modelPluralKebab
             ],
             $stub
         );
 
-        $namespacePath = resource_path('views/livewire/pages/cadastros/' . Str::kebab(Str::pluralStudly($model)));
+        $namespacePath = resource_path('views/livewire/pages/cadastros/' . $modelPluralKebab);
         $filePath = "$namespacePath/edit-page.blade.php";
 
         if (!is_dir($namespacePath)) {
@@ -913,25 +946,25 @@ PHP;
         $roleId = $firstUser->role_id;
 
         // Converte o nome do model para kebab-case
-        $modelKebab = Str::kebab($model);
+        $modelKebab = Str::kebab(Str::pluralStudly($model));
 
         // Define as permissões padrão do CRUD
         $permissions = [
-            "{$modelKebab}/index",
-            "{$modelKebab}/create",
-            "{$modelKebab}/edit",
-            "{$modelKebab}/delete",
-            "{$modelKebab}/show",
+            ['permission' => "{$modelKebab}/index", 'title' => $this->modelReadable, 'name' => 'Listar ' . $this->modelPluralReadable],
+            ['permission' => "{$modelKebab}/create", 'title' => $this->modelReadable, 'name' => 'Cadastrar ' . $this->modelReadable],
+            ['permission' => "{$modelKebab}/edit", 'title' => $this->modelReadable, 'name' => 'Editar ' . $this->modelReadable],
+            ['permission' => "{$modelKebab}/delete", 'title' => $this->modelReadable, 'name' => 'Excluir ' . $this->modelReadable],
+            ['permission' => "{$modelKebab}/show", 'title' => $this->modelReadable, 'name' => 'Visualizar ' . $this->modelReadable],
         ];
 
-        foreach ($permissions as $permissionName) {
-            // Verifica se a permissão já existe
-            $permission = DB::table('permissions')->where('name', $permissionName)->first();
+        foreach ($permissions as $permissionData) {
+            $permission = DB::table('permissions')->where('name', $permissionData['name'])->first();
 
             if (!$permission) {
-                // Insere a permissão na tabela
                 $permissionId = DB::table('permissions')->insertGetId([
-                    'name' => $permissionName,
+                    'permission' => $permissionData['permission'],
+                    'title' => $permissionData['title'],
+                    'name' => $permissionData['name'],
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -942,7 +975,7 @@ PHP;
                     'permission_id' => $permissionId,
                 ]);
 
-                $this->info("Permissão '{$permissionName}' inserida.");
+                $this->info("Permissão '{$permissionData['name']}' inserida.");
             }
         }
 

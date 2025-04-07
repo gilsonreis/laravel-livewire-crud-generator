@@ -27,7 +27,7 @@ class IndexPage extends Component
 
     public function goToEdit($id)
     {
-        return redirect()->to(route('cadastros.{{ modelPlural }}.edit', $id));
+        return redirect()->to(route('cadastros.{{ $modelPluralKebab }}.edit', $id));
     }
 
     #[On('delete{{ Model }}')]
@@ -60,7 +60,7 @@ class IndexPage extends Component
 
         $this->dispatch('showModal');
         $this->dispatch('update-form', ${{ modelSingular }}Id);
-        $this->dispatch('load-{{ modelSingular }}', ${{ modelSingular }}Id);
+        $this->dispatch('load-{{ $modelPluralKebab }}', ${{ modelSingular }}Id);
     }
 
     public function render(GetAll{{ Model }}UseCase $getAll{{ Model }}UseCase)
@@ -80,7 +80,7 @@ class IndexPage extends Component
         ${{ modelPlural }} = $getAll{{ Model }}UseCase->handle($filter);
         $this->resetPage();
 
-        return view('livewire.pages.cadastros.{{ modelPlural }}.index', [
+        return view('livewire.pages.cadastros.{{ $modelPluralKebab }}.index', [
             '{{ modelPlural }}' => ${{ modelPlural }}
         ]);
     }

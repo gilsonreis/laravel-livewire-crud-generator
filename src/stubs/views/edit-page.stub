@@ -8,7 +8,7 @@
                 <div class="col-md-12">
                     <hr>
                     <div>
-                        <livewire:pages.cadastros.{{ modelPlural }}.form-partial :{{ modelSingular }}-id="${{ modelSingular }}->id" />
+                        <livewire:pages.cadastros.{{ modelPluralKebab }}.form-partial :{{ modelSingular }}-id="${{ modelSingular }}->id" />
                     </div>
                     <hr>
                 </div>

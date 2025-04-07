@@ -1,7 +1,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12 d-flex justify-content-end">
-            <a href="{{ route('cadastros.{{ modelPlural }}.create') }}" class="btn btn-primary">
+            <a href="{{ route('cadastros.{{ modelPluralKebab }}.create') }}" class="btn btn-primary">
                 <i class="ti ti-plus"></i> Create new {{ ModelReadable }}
             </a>
         </div>
@@ -69,7 +69,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <livewire:pages.cadastros.{{ modelPlural }}.form-partial :{{ modelSingular }}-id="$viewed{{ upModelSingular }}->id ?? null" read-only="true" />
+                    <livewire:pages.cadastros.{{ modelPluralKebab }}.form-partial :{{ modelSingular }}-id="$viewed{{ upModelSingular }}->id ?? null" read-only="true" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
